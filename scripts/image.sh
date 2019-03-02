@@ -73,7 +73,7 @@ check_tarballs
 total_build_time=$(timer)
 
 rm -rf $BUILD_DIR $IMAGES_DIR/{rootfs.ext2,rootfs.ext4,rpi-firmware}
-mkdir -pv $BUILD_DIR
+mkdir -pv $BUILD_DIR $IMAGES_DIR
 
 step "[7/10] Create QNAS rootfs image"
 echo '#!/bin/sh' > $BUILD_DIR/_fakeroot.fs

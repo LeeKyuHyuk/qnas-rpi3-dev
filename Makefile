@@ -6,7 +6,7 @@ help:
 	@$(SCRIPTS_DIR)/help.sh
 
 all:
-	@make clean toolchain system image
+	@make clean toolchain system kernel image
 
 toolchain:
 	@$(SCRIPTS_DIR)/toolchain.sh

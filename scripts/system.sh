@@ -163,7 +163,6 @@ sed -i 's/\(CONFIG_UDPSVD\)=y/# \1 is not set/' $BUILD_DIR/busybox-1.30.1/.confi
 sed -i 's/\(CONFIG_TCPSVD\)=y/# \1 is not set/' $BUILD_DIR/busybox-1.30.1/.config
 make -j$PARALLEL_JOBS ARCH="$CONFIG_LINUX_ARCH" CROSS_COMPILE="$TOOLS_DIR/bin/$CONFIG_TARGET-" -C $BUILD_DIR/busybox-1.30.1
 make -j$PARALLEL_JOBS ARCH="$CONFIG_LINUX_ARCH" CROSS_COMPILE="$TOOLS_DIR/bin/$CONFIG_TARGET-" CONFIG_PREFIX="$ROOTFS_DIR" install -C $BUILD_DIR/busybox-1.30.1
-
 if grep -q "CONFIG_UDHCPC=y" $BUILD_DIR/busybox-1.30.1/.config; then
   install -m 0755 -Dv $SUPPORT_DIR/skeleton/usr/share/udhcpc/default.script $ROOTFS_DIR/usr/share/udhcpc/default.script
   install -m 0755 -dv $ROOTFS_DIR/usr/share/udhcpc/default.script.d
@@ -184,8 +183,8 @@ install -m 0755 -Dv $SUPPORT_DIR/skeleton/etc/init.d/S40network $ROOTFS_DIR/etc/
 install -m 0755 -Dv $SUPPORT_DIR/skeleton/etc/network/if-pre-up.d/wait_iface $ROOTFS_DIR/etc/network/if-pre-up.d/wait_iface
 install -m 0755 -Dv $SUPPORT_DIR/skeleton/etc/network/nfs_check $ROOTFS_DIR/etc/network/nfs_check
 cp -v $SUPPORT_DIR/skeleton/etc/network/interfaces $ROOTFS_DIR/etc/network/interfaces
-# sed -i -e '/# GENERIC_SERIAL$/s~^.*#~ttyAMA0::respawn:/sbin/getty -L  ttyAMA0 0 vt100 #~' $ROOTFS_DIR/etc/inittab
-# sed -i -e '/^#.*-o remount,rw \/$/s~^#\+~~' $ROOTFS_DIR/etc/inittab
+sed -i -e '/# GENERIC_SERIAL$/s~^.*#~ttyAMA0::respawn:/sbin/getty -L  ttyAMA0 0 vt100 #~' $ROOTFS_DIR/etc/inittab
+sed -i -e '/^#.*-o remount,rw \/$/s~^#\+~~' $ROOTFS_DIR/etc/inittab
 echo "$CONFIG_HOSTNAME" > $ROOTFS_DIR/etc/hostname
 echo "127.0.1.1	$CONFIG_HOSTNAME" >> $ROOTFS_DIR/etc/hosts
 echo "Welcome to QNAS" > $ROOTFS_DIR/etc/issue
@@ -270,6 +269,6 @@ install -v -m 755 $BUILD_DIR/vsftpd-3.0.3/vsftpd $ROOTFS_DIR/usr/sbin/vsftpd
 install -v -m 755 $SUPPORT_DIR/vsftpd/vsftpd $ROOTFS_DIR/etc/init.d/S70vsftpd
 install -v -m 644 $SUPPORT_DIR/vsftpd/vsftpd.conf $ROOTFS_DIR/etc
 mkdir -pv $ROOTFS_DIR/usr/share/empty
-# rm -rf $BUILD_DIR/vsftpd-3.0.3
+rm -rf $BUILD_DIR/vsftpd-3.0.3
 
 success "\nTotal system build time: $(timer $total_build_time)\n"
