@@ -1,6 +1,6 @@
 include settings.mk
 
-.PHONY: all toolchain system image clean
+.PHONY: all toolchain system kernel image clean
 
 help:
 	@$(SCRIPTS_DIR)/help.sh
