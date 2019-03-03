@@ -50,7 +50,6 @@ function check_environment_variable {
 
 function check_tarballs {
   LIST_OF_TARBALLS="
-  6d27aa156c26977dfd079a7107e31670127d17d3.tar.gz
   bc-1.06.95.tar.bz2
   binutils-2.32.tar.xz
   confuse-3.2.2.tar.xz
@@ -121,11 +120,9 @@ if [[ "$CONFIG_LINUX_ARCH" = "arm64" ]] ; then
 fi
 
 step "[3/37] Linux API Headers"
-extract $SOURCES_DIR/6d27aa156c26977dfd079a7107e31670127d17d3.tar.gz $BUILD_DIR
-make -j$PARALLEL_JOBS ARCH=$CONFIG_LINUX_ARCH mrproper -C $BUILD_DIR/linux-6d27aa156c26977dfd079a7107e31670127d17d3
-make -j$PARALLEL_JOBS ARCH=$CONFIG_LINUX_ARCH headers_check -C $BUILD_DIR/linux-6d27aa156c26977dfd079a7107e31670127d17d3
-make -j$PARALLEL_JOBS ARCH=$CONFIG_LINUX_ARCH INSTALL_HDR_PATH=$SYSROOT_DIR headers_install -C $BUILD_DIR/linux-6d27aa156c26977dfd079a7107e31670127d17d3
-rm -rf $BUILD_DIR/linux-6d27aa156c26977dfd079a7107e31670127d17d3
+make -j$PARALLEL_JOBS ARCH=$CONFIG_LINUX_ARCH mrproper -C $WORKSPACE_DIR/kernel
+make -j$PARALLEL_JOBS ARCH=$CONFIG_LINUX_ARCH headers_check -C $WORKSPACE_DIR/kernel
+make -j$PARALLEL_JOBS ARCH=$CONFIG_LINUX_ARCH INSTALL_HDR_PATH=$SYSROOT_DIR headers_install -C $WORKSPACE_DIR/kernel
 
 step "[32/37] binutils 2.29.1"
 extract $SOURCES_DIR/binutils-2.32.tar.xz $BUILD_DIR
