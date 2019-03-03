@@ -15,7 +15,7 @@ export LDFLAGS="-L$TOOLS_DIR/lib -Wl,-rpath,$TOOLS_DIR/lib"
 export LC_ALL=POSIX
 export CONFIG_HOST=`echo ${MACHTYPE} | sed -e 's/-[^-]*/-cross/'`
 
-CONFIG_PKG_VERSION="QNAS Raspberry Pi 3 2019.02"
+CONFIG_PKG_VERSION="QNAS Raspberry Pi 3 64bit 2019.03"
 CONFIG_BUG_URL="https://github.com/LeeKyuHyuk/qnas/issues"
 
 # End of optional parameters
@@ -50,6 +50,23 @@ function check_environment_variable {
 
 function check_tarballs {
   LIST_OF_TARBALLS="
+  6d27aa156c26977dfd079a7107e31670127d17d3.tar.gz
+  bc-1.06.95.tar.bz2
+  binutils-2.32.tar.xz
+  confuse-3.2.2.tar.xz
+  dosfstools-4.1.tar.xz
+  e2fsprogs-1.44.5.tar.xz
+  fakeroot_1.23.orig.tar.xz
+  gcc-8.3.0.tar.xz
+  genimage-10.tar.xz
+  gmp-6.1.2.tar.xz
+  libcap-2.26.tar.xz
+  mpc-1.1.0.tar.gz
+  mpfr-4.0.1.tar.xz
+  mtools-4.0.21.tar.bz2
+  musl-1.1.21.tar.gz
+  pkg-config-0.29.2.tar.gz
+  util-linux-2.33.tar.xz
   "
 
   for tarball in $LIST_OF_TARBALLS ; do
@@ -126,7 +143,7 @@ make -j$PARALLEL_JOBS install -C $BUILD_DIR/binutils-2.32/binutils-build
 rm -rf $BUILD_DIR/binutils-2.32
 
 step "[33/37] gcc 8.3.0 - Static"
-tar -Jxf $SOURCES_DIR/gcc-8.3.0.tar.xz -C $BUILD_DIR
+extract $SOURCES_DIR/gcc-8.3.0.tar.xz $BUILD_DIR
 extract $SOURCES_DIR/gmp-6.1.2.tar.xz $BUILD_DIR/gcc-8.3.0
 mv -v $BUILD_DIR/gcc-8.3.0/gmp-6.1.2 $BUILD_DIR/gcc-8.3.0/gmp
 extract $SOURCES_DIR/mpfr-4.0.1.tar.xz $BUILD_DIR/gcc-8.3.0
@@ -174,7 +191,7 @@ DESTDIR=$SYSROOT_DIR make -j$PARALLEL_JOBS install -C $BUILD_DIR/musl-1.1.21
 rm -rf $BUILD_DIR/musl-1.1.21
 
 step "[36/37] gcc 8.3.0 - Final"
-tar -Jxf $SOURCES_DIR/gcc-8.3.0.tar.xz -C $BUILD_DIR
+extract $SOURCES_DIR/gcc-8.3.0.tar.xz $BUILD_DIR
 extract $SOURCES_DIR/gmp-6.1.2.tar.xz $BUILD_DIR/gcc-8.3.0
 mv -v $BUILD_DIR/gcc-8.3.0/gmp-6.1.2 $BUILD_DIR/gcc-8.3.0/gmp
 extract $SOURCES_DIR/mpfr-4.0.1.tar.xz $BUILD_DIR/gcc-8.3.0
@@ -219,6 +236,19 @@ make -j$PARALLEL_JOBS -C $BUILD_DIR/pkg-config-0.29.2
 make -j$PARALLEL_JOBS install -C $BUILD_DIR/pkg-config-0.29.2
 rm -rf $BUILD_DIR/pkg-config-0.29.2
 
+step "[10/37] bc 1.06.95"
+extract $SOURCES_DIR/bc-1.06.95.tar.bz2 $BUILD_DIR
+sed -i "s/makeinfo --no-split/@MAKEINFO@ --no-split/g" $BUILD_DIR/bc-1.06.95/doc/Makefile.in
+( cd $BUILD_DIR/bc-1.06.95 && \
+MAKEINFO=true \
+./configure \
+--prefix=$TOOLS_DIR \
+--enable-shared \
+--disable-static )
+make -j$PARALLEL_JOBS -C $BUILD_DIR/bc-1.06.95
+make -j$PARALLEL_JOBS install -C $BUILD_DIR/bc-1.06.95
+rm -rf $BUILD_DIR/bc-1.06.95
+
 step "[19/37] util-linux 2.33"
 extract $SOURCES_DIR/util-linux-2.33.tar.xz $BUILD_DIR
 ( cd $BUILD_DIR/util-linux-2.33 && \
@@ -251,9 +281,9 @@ make -j$PARALLEL_JOBS -C $BUILD_DIR/dosfstools-4.1
 make -j$PARALLEL_JOBS install -C $BUILD_DIR/dosfstools-4.1
 rm -rf $BUILD_DIR/dosfstools-4.1
 
-step "[21/37] e2fsprogs 1.44.4"
-extract $SOURCES_DIR/e2fsprogs-1.44.4.tar.xz $BUILD_DIR
-( cd $BUILD_DIR/e2fsprogs-1.44.4 && \
+step "[21/37] e2fsprogs 1.44.5"
+extract $SOURCES_DIR/e2fsprogs-1.44.5.tar.xz $BUILD_DIR
+( cd $BUILD_DIR/e2fsprogs-1.44.5 && \
 ./configure \
 --prefix=$TOOLS_DIR \
 --enable-shared \
@@ -265,9 +295,9 @@ extract $SOURCES_DIR/e2fsprogs-1.44.4.tar.xz $BUILD_DIR
 --disable-libuuid \
 --enable-symlink-install \
 --disable-testio-debug )
-make -j$PARALLEL_JOBS -C $BUILD_DIR/e2fsprogs-1.44.4
-make -j$PARALLEL_JOBS install install-libs -C $BUILD_DIR/e2fsprogs-1.44.4
-rm -rf $BUILD_DIR/e2fsprogs-1.44.4
+make -j$PARALLEL_JOBS -C $BUILD_DIR/e2fsprogs-1.44.5
+make -j$PARALLEL_JOBS install install-libs -C $BUILD_DIR/e2fsprogs-1.44.5
+rm -rf $BUILD_DIR/e2fsprogs-1.44.5
 
 step "[23/37] libconfuse 3.2.2"
 extract $SOURCES_DIR/confuse-3.2.2.tar.xz $BUILD_DIR

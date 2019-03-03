@@ -2,11 +2,12 @@
 #
 # QNAS system build script
 # Optional parameteres below:
-
+set +h
 set -o nounset
 set -o errexit
+umask 022
 
-CONFIG_PKG_VERSION="QNAS x86_64 2019.02"
+CONFIG_PKG_VERSION="QNAS Raspberry Pi 3 64bit 2019.03"
 CONFIG_BUG_URL="https://github.com/LeeKyuHyuk/qnas/issues"
 
 # End of optional parameters
@@ -46,6 +47,14 @@ function check_environment_variable {
 
 function check_tarballs {
   LIST_OF_TARBALLS="
+  busybox-1.30.1.tar.bz2
+  e2fsprogs-1.44.5.tar.xz
+  musl-1.1.21.tar.gz
+  openssh-7.9p1.tar.gz
+  openssl-1.0.2p.tar.gz
+  util-linux-2.33.tar.xz
+  vsftpd-3.0.3.tar.gz
+  zlib-1.2.11.tar.gz
   "
 
   for tarball in $LIST_OF_TARBALLS ; do
@@ -97,8 +106,8 @@ export CONFIG_HOST=`echo ${MACHTYPE} | sed -e 's/-[^-]*/-cross/'`
 rm -rf $BUILD_DIR $ROOTFS_DIR
 mkdir -pv $BUILD_DIR $ROOTFS_DIR
 
-step "Creating Directories"
-mkdir -pv $ROOTFS_DIR/{dev,etc,lib,media,mnt,opt,proc,root,run,sys,tmp,usr}
+step "[1/11] Creating Directories"
+mkdir -pv $ROOTFS_DIR/{dev,etc,lib,media,mnt,opt,proc,root,run,sys,tmp,usr,qnas}
 ln -snvf ../proc/self/fd $ROOTFS_DIR/dev/fd
 ln -snvf ../proc/self/fd/2 $ROOTFS_DIR/dev/stderr
 ln -snvf ../proc/self/fd/0 $ROOTFS_DIR/dev/stdin
@@ -120,7 +129,7 @@ if [[ "$CONFIG_LINUX_ARCH" = "arm64" ]] ; then
 fi
 mkdir -pv $ROOTFS_DIR/var/log
 
-step "Creating the /etc/fstab File"
+step "[2/11] Creating the /etc/fstab File"
 cat > $ROOTFS_DIR/etc/fstab << "EOF"
 # <file system>	<mount pt>	<type>	<options>	<dump>	<pass>
 /dev/root	/		ext2	rw,noauto	0	1
@@ -130,13 +139,14 @@ tmpfs		/dev/shm	tmpfs	mode=0777	0	0
 tmpfs		/tmp		tmpfs	mode=1777	0	0
 tmpfs		/run		tmpfs	mode=0755,nosuid,nodev	0	0
 sysfs		/sys		sysfs	defaults	0	0
+/dev/sda	/qnas	auto	defaults,rw	0	0
 EOF
 
-step "libgcc-6.2.0"
+step "[3/11] libgcc 6.2.0"
 cp -v $SYSROOT_DIR/lib/libgcc_s.so.1 $ROOTFS_DIR/lib/
 $TOOLS_DIR/bin/$CONFIG_TARGET-strip $ROOTFS_DIR/lib/libgcc_s.so.1
 
-step "[35/37] musl 1.1.21"
+step "[4/11] Musl 1.1.21"
 extract $SOURCES_DIR/musl-1.1.21.tar.gz $BUILD_DIR
 ( cd $BUILD_DIR/musl-1.1.21 && \
   ./configure \
@@ -148,7 +158,7 @@ make -j$PARALLEL_JOBS -C $BUILD_DIR/musl-1.1.21
 DESTDIR=$ROOTFS_DIR make -j$PARALLEL_JOBS install-libs -C $BUILD_DIR/musl-1.1.21
 rm -rf $BUILD_DIR/musl-1.1.21
 
-step "[35/37] busybox-1.30.1"
+step "[5/11] Busybox 1.30.1"
 extract $SOURCES_DIR/busybox-1.30.1.tar.bz2 $BUILD_DIR
 make -j$PARALLEL_JOBS distclean -C $BUILD_DIR/busybox-1.30.1
 make -j$PARALLEL_JOBS ARCH="$CONFIG_LINUX_ARCH" defconfig -C $BUILD_DIR/busybox-1.30.1
@@ -193,14 +203,58 @@ cp -v $BUILD_DIR/busybox-1.30.1/examples/depmod.pl $TOOLS_DIR/bin
 chmod -v 755 $TOOLS_DIR/bin/depmod.pl
 rm -rf $BUILD_DIR/busybox-1.30.1
 
-step "[6/14] zlib 1.2.11"
+step "[6/11] util-linux 2.33"
+extract $SOURCES_DIR/util-linux-2.33.tar.xz $BUILD_DIR
+( cd $BUILD_DIR/util-linux-2.33 && \
+./configure \
+--target=$CONFIG_TARGET \
+--host=$CONFIG_TARGET \
+--build=$CONFIG_HOST \
+--prefix=/usr \
+--disable-chfn-chsh  \
+--disable-login \
+--disable-nologin \
+--disable-su \
+--disable-setpriv \
+--disable-runuser \
+--disable-pylibmount \
+--disable-static \
+--without-python \
+--without-systemd \
+--without-systemdsystemunitdir \
+--disable-makeinstall-chown )
+make -j$PARALLEL_JOBS -C $BUILD_DIR/util-linux-2.33
+make -j$PARALLEL_JOBS DESTDIR=$ROOTFS_DIR install -C $BUILD_DIR/util-linux-2.33
+rm -rf $BUILD_DIR/util-linux-2.33
+
+step "[7/11] e2fsprogs 1.44.5"
+extract $SOURCES_DIR/e2fsprogs-1.44.5.tar.xz $BUILD_DIR
+( cd $BUILD_DIR/e2fsprogs-1.44.5 && \
+./configure \
+--target=$CONFIG_TARGET \
+--host=$CONFIG_TARGET \
+--build=$CONFIG_HOST \
+--prefix=/usr \
+--bindir=/bin \
+--disable-uuidd \
+--disable-libblkid \
+--disable-libuuid \
+--disable-e2initrd-helper \
+--disable-testio-debug \
+--disable-rpath \
+--enable-symlink-install )
+make -j$PARALLEL_JOBS -C $BUILD_DIR/e2fsprogs-1.44.5
+make -j1 DESTDIR=$ROOTFS_DIR install install-libs -C $BUILD_DIR/e2fsprogs-1.44.5
+rm -rf $BUILD_DIR/e2fsprogs-1.44.5
+
+step "[8/11] Zlib 1.2.11"
 extract $SOURCES_DIR/zlib-1.2.11.tar.gz $BUILD_DIR
 ( cd $BUILD_DIR/zlib-1.2.11 && CC=$TOOLS_DIR/bin/$CONFIG_TARGET-gcc ./configure --prefix="/usr" )
 make -j1 -C $BUILD_DIR/zlib-1.2.11
 make -j1 DESTDIR=$ROOTFS_DIR LDCONFIG=true install -C $BUILD_DIR/zlib-1.2.11
 rm -rf $BUILD_DIR/zlib-1.2.11
 
-step "[9/14] openssl 1.0.2p"
+step "[9/11] Openssl 1.0.2p"
 extract $SOURCES_DIR/openssl-1.0.2p.tar.gz $BUILD_DIR
 ( cd $BUILD_DIR/openssl-1.0.2p && \
 ./Configure \
@@ -214,7 +268,7 @@ make -j1 -C $BUILD_DIR/openssl-1.0.2p
 make -j1 INSTALL_PREFIX=$ROOTFS_DIR install -C $BUILD_DIR/openssl-1.0.2p
 rm -rf $BUILD_DIR/openssl-1.0.2p
 
-step "[12/14] openssh 7.9p1"
+step "[10/11] Openssh 7.9p1"
 extract $SOURCES_DIR/openssh-7.9p1.tar.gz $BUILD_DIR
 ( cd $BUILD_DIR/openssh-7.9p1 && \
 LD="$TOOLS_DIR/bin/$CONFIG_TARGET-gcc" \
@@ -251,7 +305,7 @@ echo "PasswordAuthentication yes" >> $ROOTFS_DIR/etc/ssh/sshd_config
 install -Dv -m 755 $SUPPORT_DIR/openssh/sshd $ROOTFS_DIR/etc/init.d/S50sshd
 rm -rf $BUILD_DIR/openssh-7.9p1
 
-step "[7/14] vsftpd 3.0.3"
+step "[11/11] Vsftpd 3.0.3"
 extract $SOURCES_DIR/vsftpd-3.0.3.tar.gz $BUILD_DIR
 sed -i -e 's@#-pedantic -Wconversion@-Wno-discarded-qualifiers -Wno-stringop-truncation@g' $BUILD_DIR/vsftpd-3.0.3/Makefile
 patch -Np1 -i $SUPPORT_DIR/vsftpd/sysdeputil.c-Fix-with-musl-which-does-not-have-utmpx.patch -d $BUILD_DIR/vsftpd-3.0.3

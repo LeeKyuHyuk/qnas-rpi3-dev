@@ -40,6 +40,7 @@ function check_environment_variable {
 
 function check_tarballs {
   LIST_OF_TARBALLS="
+  6d27aa156c26977dfd079a7107e31670127d17d3.tar.gz
   "
 
   for tarball in $LIST_OF_TARBALLS ; do
@@ -84,25 +85,25 @@ mkdir -pv $BUILD_DIR $IMAGES_DIR
 extract $SOURCES_DIR/6d27aa156c26977dfd079a7107e31670127d17d3.tar.gz $BUILD_DIR
 make -j$PARALLEL_JOBS ARCH=$CONFIG_LINUX_ARCH mrproper -C $BUILD_DIR/linux-6d27aa156c26977dfd079a7107e31670127d17d3
 make -j$PARALLEL_JOBS ARCH=$CONFIG_LINUX_ARCH $CONFIG_LINUX_KERNEL_DEFCONFIG -C $BUILD_DIR/linux-6d27aa156c26977dfd079a7107e31670127d17d3
-/bin/sed -i -e "/\\<CONFIG_KERNEL_GZIP\\>/d" $BUILD_DIR/linux-6d27aa156c26977dfd079a7107e31670127d17d3/.config
+sed -i -e "/\\<CONFIG_KERNEL_GZIP\\>/d" $BUILD_DIR/linux-6d27aa156c26977dfd079a7107e31670127d17d3/.config
 echo 'CONFIG_KERNEL_GZIP=y' >> $BUILD_DIR/linux-6d27aa156c26977dfd079a7107e31670127d17d3/.config
-/bin/sed -i -e "/\\<CONFIG_KERNEL_LZ4\\>/d" $BUILD_DIR/linux-6d27aa156c26977dfd079a7107e31670127d17d3/.config
+sed -i -e "/\\<CONFIG_KERNEL_LZ4\\>/d" $BUILD_DIR/linux-6d27aa156c26977dfd079a7107e31670127d17d3/.config
 echo '# CONFIG_KERNEL_LZ4 is not set' >> $BUILD_DIR/linux-6d27aa156c26977dfd079a7107e31670127d17d3/.config
-/bin/sed -i -e "/\\<CONFIG_KERNEL_LZMA\\>/d" $BUILD_DIR/linux-6d27aa156c26977dfd079a7107e31670127d17d3/.config
+sed -i -e "/\\<CONFIG_KERNEL_LZMA\\>/d" $BUILD_DIR/linux-6d27aa156c26977dfd079a7107e31670127d17d3/.config
 echo '# CONFIG_KERNEL_LZMA is not set' >> $BUILD_DIR/linux-6d27aa156c26977dfd079a7107e31670127d17d3/.config
-/bin/sed -i -e "/\\<CONFIG_KERNEL_LZO\\>/d" $BUILD_DIR/linux-6d27aa156c26977dfd079a7107e31670127d17d3/.config
+sed -i -e "/\\<CONFIG_KERNEL_LZO\\>/d" $BUILD_DIR/linux-6d27aa156c26977dfd079a7107e31670127d17d3/.config
 echo '# CONFIG_KERNEL_LZO is not set' >> $BUILD_DIR/linux-6d27aa156c26977dfd079a7107e31670127d17d3/.config
-/bin/sed -i -e "/\\<CONFIG_KERNEL_XZ\\>/d" $BUILD_DIR/linux-6d27aa156c26977dfd079a7107e31670127d17d3/.config
+sed -i -e "/\\<CONFIG_KERNEL_XZ\\>/d" $BUILD_DIR/linux-6d27aa156c26977dfd079a7107e31670127d17d3/.config
 echo '# CONFIG_KERNEL_XZ is not set' >> $BUILD_DIR/linux-6d27aa156c26977dfd079a7107e31670127d17d3/.config
-/bin/sed -i -e "/\\<CONFIG_CPU_LITTLE_ENDIAN\\>/d" $BUILD_DIR/linux-6d27aa156c26977dfd079a7107e31670127d17d3/.config
+sed -i -e "/\\<CONFIG_CPU_LITTLE_ENDIAN\\>/d" $BUILD_DIR/linux-6d27aa156c26977dfd079a7107e31670127d17d3/.config
 echo 'CONFIG_CPU_LITTLE_ENDIAN=y' >> $BUILD_DIR/linux-6d27aa156c26977dfd079a7107e31670127d17d3/.config
 # As the kernel gets compiled before root filesystems are
 # built, we create a fake cpio file. It'll be
 # replaced later by the real cpio archive, and the kernel will be
 # rebuilt using the linux-rebuild-with-initramfs target.
-/bin/sed -i -e "/\\<CONFIG_DEVTMPFS\\>/d" $BUILD_DIR/linux-6d27aa156c26977dfd079a7107e31670127d17d3/.config
+sed -i -e "/\\<CONFIG_DEVTMPFS\\>/d" $BUILD_DIR/linux-6d27aa156c26977dfd079a7107e31670127d17d3/.config
 echo 'CONFIG_DEVTMPFS=y' >> $BUILD_DIR/linux-6d27aa156c26977dfd079a7107e31670127d17d3/.config
-/bin/sed -i -e "/\\<CONFIG_DEVTMPFS_MOUNT\\>/d" $BUILD_DIR/linux-6d27aa156c26977dfd079a7107e31670127d17d3/.config
+sed -i -e "/\\<CONFIG_DEVTMPFS_MOUNT\\>/d" $BUILD_DIR/linux-6d27aa156c26977dfd079a7107e31670127d17d3/.config
 echo 'CONFIG_DEVTMPFS_MOUNT=y' >> $BUILD_DIR/linux-6d27aa156c26977dfd079a7107e31670127d17d3/.config
 BR_BINARIES_DIR=$IMAGES_DIR KCFLAGS=-Wno-attribute-alias make -j$PARALLEL_JOBS ARCH=arm64 ARCH=$CONFIG_LINUX_ARCH INSTALL_HDR_PATH=$ROOTFS_DIR CROSS_COMPILE="$TOOLS_DIR/bin/$CONFIG_TARGET-" DEPMOD="$TOOLS_DIR/bin/depmod.pl" INSTALL_MOD_STRIP=1 -C $BUILD_DIR/linux-6d27aa156c26977dfd079a7107e31670127d17d3 Image
 BR_BINARIES_DIR=$IMAGES_DIR KCFLAGS=-Wno-attribute-alias make -j$PARALLEL_JOBS ARCH=arm64 ARCH=$CONFIG_LINUX_ARCH INSTALL_HDR_PATH=$ROOTFS_DIR CROSS_COMPILE="$TOOLS_DIR/bin/$CONFIG_TARGET-" DEPMOD="$TOOLS_DIR/bin/depmod.pl" INSTALL_MOD_STRIP=1 -C $BUILD_DIR/linux-6d27aa156c26977dfd079a7107e31670127d17d3 broadcom/bcm2710-rpi-3-b.dtb broadcom/bcm2710-rpi-3-b-plus.dtb broadcom/bcm2837-rpi-3-b.dtb
