@@ -1,4 +1,4 @@
-export CONFIG_TARGET = aarch64-qnas-linux-musl
+export CONFIG_TARGET = aarch64-qnas-linux-gnu
 export CONFIG_LINUX_ARCH = arm64
 export CONFIG_LINUX_KERNEL_DEFCONFIG = bcmrpi3_defconfig
 export CONFIG_ROOTFS_SIZE = 100M
