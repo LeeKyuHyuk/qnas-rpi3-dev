@@ -46,7 +46,9 @@ toolchain:
 	make toolchain -C $(PACKAGES_DIR)/kmod
 
 system:
-	$(SCRIPTS_DIR)/system.sh
+	make sysroot system -C $(PACKAGES_DIR)/skeleton
+	make sysroot -C $(PACKAGES_DIR)/linux
+	make sysroot system -C $(PACKAGES_DIR)/glibc
 
 kernel:
 	$(SCRIPTS_DIR)/kernel.sh
